@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:movie_app/components/signup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../api/get_api.dart';
+// import '../api/get_api.dart';
 import 'home_page.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -18,18 +20,107 @@ class _LoginPageState extends State<LoginPage> {
     checkLogin();
   }
 
+  //for check login or not!
   void checkLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('action');
-    if (token != null) {
+    String? id = prefs.getString('id');
+    if (id != null) {
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => HomePage()),
           (route) => false);
     }
   }
 
+  //for validate textfield and corret password
+
+  void validateCheck() async {
+    if (formKey.currentState!.validate()) {
+      setState(() {
+        con = true;
+      });
+      try {
+        await auth.signInWithEmailAndPassword(
+            email: foremail.text, password: forPassword.text);
+        if (user != null) {
+          final uemail = user!.email;
+          final uid = user!.uid;
+          print('>>>>>>>>>>>>>>$user');
+          print('>>>>>>>>>>>>>>>>>>>>>>>>$uid');
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('id', uid);
+          await prefs.setString('email', uemail!);
+        }
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => HomePage()));
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'user-not-found') {
+          Future.delayed(Duration(milliseconds: 1500), () {
+            setState(() {
+              con = false;
+            });
+          });
+          showSnackBar('No user found for that email!');
+          print('No user found for that email.');
+        } else if (e.code == 'wrong-password') {
+          Future.delayed(Duration(milliseconds: 1500), () {
+            setState(() {
+              con = false;
+            });
+          });
+          showSnackBar('Wrong password provided for that user!');
+          print('Wrong password provided for that user.');
+        } else{
+          setState(() {
+              con = false;
+              showSnackBar('Something Wrong!');
+            });
+        }
+      }
+
+      // setState(() {
+      //   con = true;
+      // });
+      // Map getResult = await getLoginCode({
+      //   'userid': forId.text,
+      //   'password': forPassword.text,
+      // });
+      // if (getResult['returncode'] == '200') {
+      //   Navigator.pushReplacement(
+      //       context, MaterialPageRoute(builder: (context) => HomePage()));
+      // } else {
+      //   Future.delayed(Duration(milliseconds: 1500), () {
+      //     setState(() {
+      //       con = false;
+      //     });
+      //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //       content: Text('Incorret userid or password!'),
+      //       action: SnackBarAction(
+      //         label: 'Undo',
+      //         onPressed: () {
+      //         },
+      //       ),
+      //     ));
+      //   });
+      // }
+    }
+  }
+
+  void showSnackBar(String value) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(value),
+      action: SnackBarAction(
+        label: 'Undo',
+        onPressed: () {
+          // Some code to undo the change.
+        },
+      ),
+    ));
+  }
+
+  final user = FirebaseAuth.instance.currentUser;
+  final auth = FirebaseAuth.instance;
   final formKey = GlobalKey<FormState>();
-  TextEditingController forId = TextEditingController();
+  TextEditingController foremail = TextEditingController();
   TextEditingController forPassword = TextEditingController();
   bool con = false;
 
@@ -53,21 +144,17 @@ class _LoginPageState extends State<LoginPage> {
                   './assets/moviedb.png',
                   height: 100,
                 ),
-                Text(
-                  'Login Your Account',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 20),
                   child: SizedBox(
                     child: Column(
                       children: [
                         TextFormField(
-                          keyboardType: TextInputType.number,
-                          controller: forId,
+                          keyboardType: TextInputType.emailAddress,
+                          controller: foremail,
                           validator: (value) {
                             if (value!.isEmpty) {
-                              return 'Userid must not be empty!';
+                              return 'Email must not be empty!';
                             }
                             return null;
                           },
@@ -76,13 +163,14 @@ class _LoginPageState extends State<LoginPage> {
                               border: OutlineInputBorder(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(50))),
-                              labelText: 'Enter your id :',
+                              labelText: 'Enter your email :',
                               labelStyle: TextStyle(fontSize: 15)),
                         ),
                         SizedBox(
                           height: 20,
                         ),
                         TextFormField(
+                          keyboardType: TextInputType.number,
                           controller: forPassword,
                           validator: (value) {
                             if (value!.isEmpty) {
@@ -106,29 +194,21 @@ class _LoginPageState extends State<LoginPage> {
                   width: MediaQuery.of(context).size.width * 0.8,
                   child: ElevatedButton(
                       onPressed: () async {
-                        if (formKey.currentState!.validate()) {
-                          setState(() {
-                            con = true;
-                          });
-                          String getResult = await getLoginCode({
-                            'userid': forId.text,
-                            'password': forPassword.text,
-                          });
-                          if (getResult == '200') {
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const HomePage()));
-                          } else {
-                            Future.delayed(Duration(milliseconds: 2000), () {
-                              setState(() {
-                                con = false;
-                              });
-                            });
-                          }
-                        }
+                        validateCheck();
                       },
                       child: con ? spinkit : Text('Login')),
+                ),
+                Text('or'),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => SignUp()));
+                      },
+                      label: Text('Signup with Gmail'),
+                      icon: Icon(Icons.email),
+                      ),
                 )
               ],
             ),

@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:movie_app/components/login.dart';
+import 'firebase_options.dart';
 import 'theme/color_schemes.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -15,19 +24,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // String? token = '';
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   checkPreference();
-  // }
-
-  // void checkPreference() async {
-  //   SharedPreferences prefs = await SharedPreferences.getInstance();
-  //   token = prefs.getString('action')!;
-  //   debugPrint('>>>>>>>>>>>>>>$token');
-  // }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -37,7 +33,6 @@ class _MyAppState extends State<MyApp> {
       home: AnimatedSplashScreen(
         duration: 3000,
         splash: './assets/moviedb.png',
-        // ignore: unnecessary_null_comparison
         nextScreen: LoginPage(),
         splashTransition: SplashTransition.slideTransition,
         backgroundColor: const Color(0xFF191C1D),

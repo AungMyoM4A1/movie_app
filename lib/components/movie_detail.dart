@@ -27,7 +27,7 @@ class _MovieDetailState extends State<MovieDetail> {
 
   Future setsimilarList() async {
     similarList =
-        await getmovieList(similarid: widget.movieList[widget.index]['id']);
+        await getMovieList(link: 'https://api.themoviedb.org/3/movie/${widget.movieList[widget.index]['id']}/similar?language=en-US&page=1&api_key=35e30c88358a559f25d0654f68478055', result: 'results');
     setState(() {});
   }
 

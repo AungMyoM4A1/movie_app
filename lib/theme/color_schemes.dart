@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 class CustomTheme{
+  static ThemeData lightTheme= ThemeData(colorScheme: lightColorScheme, useMaterial3: true);
   static ThemeData darkTheme = ThemeData(colorScheme: darkColorScheme, useMaterial3: true);
 }
 

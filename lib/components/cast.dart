@@ -19,7 +19,7 @@ class _CastListState extends State<CastList> {
   }
 
   Future setCastList() async {
-    castList = await getmovieList(castid: widget.id);
+    castList = await getMovieList(link: 'https://api.themoviedb.org/3/movie/${widget.id}/credits?language=en-US27page=1&api_key=35e30c88358a559f25d0654f68478055', result: 'cast');
     setState(() {});
   }
 
@@ -47,7 +47,7 @@ class _CastListState extends State<CastList> {
                   child: ListTile(
                     leading: castList[index]['profile_path'] == null
                         ? const CircleAvatar(
-                            child: Icon(Icons.movie),
+                            child: Icon(Icons.person),
                           )
                         : CircleAvatar(
                             foregroundImage: NetworkImage(
