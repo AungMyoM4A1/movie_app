@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:movie_app/components/login.dart';
+import 'package:movie_app/components/search.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/get_api.dart';
 import 'movie_card.dart';
@@ -15,6 +17,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String userName = 'User';
   String userId = '';
+  final user = FirebaseAuth.instance.currentUser; 
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +70,8 @@ class _HomePageState extends State<HomePage> {
     {'icon': Icons.category_outlined, 'Text': 'Category'},
     {'icon': Icons.movie, 'Text': 'Movies'},
     {'icon': Icons.local_movies, 'Text': 'Series'},
+    {'icon': Icons.download, 'Text': 'Downloads'},
+    {'icon': Icons.favorite, 'Text': 'Favourites'},
   ];
 
   @override
@@ -74,136 +80,146 @@ class _HomePageState extends State<HomePage> {
       drawer: Container(
         width: MediaQuery.of(context).size.width * 0.6,
         child: Drawer(
-          child: Column(
-            children: [
-              Expanded(
-                flex: 2,
-                child: UserAccountsDrawerHeader(
-                  currentAccountPicture: CircleAvatar(
+          child: SafeArea(
+            child: Column(
+              children: [
+                CircleAvatar(
                     radius: 40,
                     child: Icon(Icons.person),
                   ),
-                  accountName: Text(
-                    userName,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  accountEmail: Text(userId, style: TextStyle(fontSize: 15)),
+                Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 20),
+                  child: Text('${user!.email}', style: TextStyle(fontSize: 15),),
                 ),
-              ),
-              Expanded(
-                flex: 5,
-                child: ListView.builder(
-                    itemCount: drawerList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return drawerList[index]['Text'] != 'Category'
-                          ? ListTile(
-                              leading: Icon(drawerList[index]['icon']),
-                              title: Text(drawerList[index]['Text']),
-                            )
-                          : ExpansionTile(
-                              leading: Icon(drawerList[index]['icon']),
-                              title: Text(drawerList[index]['Text']),
-                              childrenPadding: EdgeInsets.only(left: 50),
-                              children: [
-                                ListTile(
-                                  onTap: () {
-                                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => DrawerCat(movieType: 'Popular Movie', movieList: popularMovieList)));
-                                  },
-                                  title: Text('Popular'),
-                                ),
-                                ListTile(
-                                  onTap: () {
-                                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => DrawerCat(movieType: 'Top Rating Movie', movieList: topRatedMovieList)));
-                                  },
-                                  title: Text('Top rating'),
-                                ),
-                                ListTile(
-                                  onTap: () {
-                                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => DrawerCat(movieType: 'Upcoming Movie', movieList: upComingList)));
-                                  },
-                                  title: Text('Upcoming'),
-                                ),
-                                ListTile(
-                                  onTap: () {
-                                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => DrawerCat(movieType: 'Now Playing Movie', movieList: nowPlayingList)));
-                                  },
-                                  title: Text('Now playing'),
-                                )
-                              ],
-                            );
-                    }),
-              ),
-              Expanded(
-                flex: 1,
-                child: Container(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 20, right: 20),
-                    child: Align(
-                      alignment: FractionalOffset.bottomRight,
-                      child: TextButton(
-                          onPressed: () async {
-                            SharedPreferences prefs =
-                                await SharedPreferences.getInstance();
-                            await prefs.remove('id');
-                            await prefs.remove('email');
-                            Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                    builder: (context) => LoginPage()),
-                                (route) => false);
-                          },
-                          child: Text('Logout')),
+                Expanded(
+                  flex: 5,
+                  child: ListView.builder(
+                      itemCount: drawerList.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return drawerList[index]['Text'] != 'Category'
+                            ? ListTile(
+                              onTap: () {
+                                return Navigator.pop(context);
+                              },
+                                leading: Icon(drawerList[index]['icon']),
+                                title: Text(drawerList[index]['Text']),
+                              )
+                            : ExpansionTile(
+                                leading: Icon(drawerList[index]['icon']),
+                                title: Text(drawerList[index]['Text']),
+                                childrenPadding: EdgeInsets.only(left: 50),
+                                children: [
+                                  ListTile(
+                                    onTap: () {
+                                     Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => Scaffold(
+                                        appBar: AppBar(title: Text('Popular Movie', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),), centerTitle: true,),
+                                        body: DrawerCat(
+                                        movieList: popularMovieList
+                                        ),
+                                      )
+                                      ));
+                                    },
+                                    title: Text('Popular'),
+                                  ),
+                                  ListTile(
+                                    onTap: () {
+                                     Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => Scaffold(
+                                        appBar: AppBar(title: Text('Top Rating Movie', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),), centerTitle: true,),
+                                        body: DrawerCat(
+                                          movieList: topRatedMovieList
+                                          ))
+                                      ));
+                                    },
+                                    title: Text('Top rating'),
+                                  ),
+                                  ListTile(
+                                    onTap: () {
+                                     Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => Scaffold(
+                                        appBar: AppBar(title: Text('Upcoming Movie', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),), centerTitle: true,),
+                                        body: DrawerCat(
+                                         movieList: upComingList
+                                          ),
+                                      ))
+                                      );
+                                    },
+                                    title: Text('Upcoming'),
+                                  ),
+                                  ListTile(
+                                    onTap: () {
+                                     Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => Scaffold(
+                                        appBar: AppBar(title: Text('Now Playing Movie', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),), centerTitle: true,),
+                                        body: DrawerCat(
+                                          movieList: nowPlayingList
+                                          ),
+                                      )
+                                      ));
+                                    },
+                                    title: Text('Now playing'),
+                                  )
+                                ],
+                              );
+                      }),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Container(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 20, right: 20),
+                      child: Align(
+                        alignment: FractionalOffset.bottomRight,
+                        child: TextButton(
+                            onPressed: () async {
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.remove('id');
+                              await prefs.remove('email');
+                              await FirebaseAuth.instance.signOut();
+                              Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                      builder: (context) => LoginPage()),
+                                  (route) => false);
+                            },
+                            child: Text('Logout')),
+                      ),
                     ),
                   ),
-                ),
-              )
-            ],
+                )
+              ],
+            ),
           ),
         ),
       ),
       appBar: AppBar(
-        title: Center(
-          child: SizedBox(
-            width: 300,
-            child: ListTile(
-              leading: Image(
-                image: AssetImage('./assets/moviedb.png'),
-                height: 40,
-              ),
-              title: Text(
-                'MOVIEDB',
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-              ),
-            ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+          Text(
+            'MOVIEDB',
+            style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
           ),
-        ),
+          Image(
+            image: AssetImage('./assets/moviedb.png'),
+            height: 40,
+          ),
+        ]),
+        actions: [
+          IconButton(
+            onPressed: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => SearchMovie()));
+            }, 
+            icon: Icon(Icons.search), 
+           )
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //Search bar
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Form(
-                child: Center(
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.95,
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.only(left: 20),
-                        border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(50))),
-                        prefixIcon: Icon(Icons.search),
-                        hintText: 'Search Movie',
-                        hintStyle: normal,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
             //Popular list
             Padding(
               padding: const EdgeInsets.only(bottom: 10.0, left: 10),

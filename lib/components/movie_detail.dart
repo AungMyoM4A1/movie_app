@@ -26,12 +26,15 @@ class _MovieDetailState extends State<MovieDetail> {
   }
 
   Future setsimilarList() async {
-    similarList =
-        await getMovieList(link: 'https://api.themoviedb.org/3/movie/${widget.movieList[widget.index]['id']}/similar?language=en-US&page=1&api_key=35e30c88358a559f25d0654f68478055', result: 'results');
+    similarList = await getMovieList(
+        link:
+            'https://api.themoviedb.org/3/movie/${widget.movieList[widget.index]['id']}/similar?language=en-US&page=1&api_key=35e30c88358a559f25d0654f68478055',
+        result: 'results');
     setState(() {});
   }
 
   List similarList = [];
+  bool favIcon = false;
   Widget spinkit = const SpinKitCircle(
     color: Colors.white,
   );
@@ -42,6 +45,11 @@ class _MovieDetailState extends State<MovieDetail> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+          leading: IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: Icon(Icons.arrow_back_ios)),
           centerTitle: true,
           title: Text('${widget.movieList[widget.index]['original_title']}')),
       body: SingleChildScrollView(
@@ -55,73 +63,121 @@ class _MovieDetailState extends State<MovieDetail> {
               child: Card(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5)),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
+                  alignment: AlignmentDirectional.bottomStart,
                   children: [
-                    CachedNetworkImage(
-                      imageUrl:
-                          'https://image.tmdb.org/t/p/w500/${widget.movieList[widget.index]['backdrop_path']}',
-                      placeholder: (context, url) => SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.25,
-                        child: spinkit,
-                      ),
-                      errorWidget: (context, url, error) =>
-                          const Icon(Icons.error),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Stack(
+                          alignment: AlignmentDirectional.topEnd,
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl:
+                                  'https://image.tmdb.org/t/p/w500/${widget.movieList[widget.index]['backdrop_path']}',
+                              placeholder: (context, url) => SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.25,
+                                child: spinkit,
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                            ),
+                            Positioned(
+                                child: IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        favIcon = !favIcon;
+                                      });
+                                    },
+                                    icon: favIcon
+                                        ? Icon(
+                                            Icons.favorite,
+                                            color: Colors.red,
+                                          )
+                                        : Icon(Icons.favorite_border)))
+                          ],
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 30),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              Text(
-                                '${widget.movieList[widget.index]['original_title']}',
-                                style: header,
+                              Padding(
+                                padding: const EdgeInsets.only(left: 120,),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: 160,
+                                      child: Text(
+                                        '${widget.movieList[widget.index]['original_title']}',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: header,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Release Date : ${widget.movieList[widget.index]['release_date']}',
+                                      style: normal,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              Text(
-                                'Release Date : ${widget.movieList[widget.index]['release_date']}',
-                                style: normal,
-                              ),
+                              SizedBox(
+                                width: 65,
+                                height: 55,
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5)),
+                                  color: const Color(0xFF44D8F1),
+                                  child: Center(
+                                      child: Text(
+                                    widget.movieList[widget.index]
+                                            ['vote_average']
+                                        .toStringAsFixed(1),
+                                    style: const TextStyle(fontSize: 30),
+                                    textAlign: TextAlign.center,
+                                  )),
+                                ),
+                              )
                             ],
                           ),
-                          SizedBox(
-                            width: 65,
-                            height: 55,
-                            child: Card(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5)),
-                              color: const Color(0xFF44D8F1),
-                              child: Center(
-                                  child: Text(
-                                widget.movieList[widget.index]['vote_average']
-                                    .toStringAsFixed(1),
-                                style: const TextStyle(fontSize: 30),
-                                textAlign: TextAlign.center,
-                              )),
-                            ),
-                          )
-                        ],
-                      ),
+                        ),
+                        TextButton(
+                            style: const ButtonStyle(
+                                shape: MaterialStatePropertyAll(
+                                    RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5))))),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => CastList(
+                                          '${widget.movieList[widget.index]['original_title']}',
+                                          widget.movieList[widget.index]
+                                              ['id'])));
+                            },
+                            child: const Text('Show cast')),
+                      ],
                     ),
-                    TextButton(
-                        style: const ButtonStyle(
-                            shape: MaterialStatePropertyAll(
-                                RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(5))))),
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => CastList(
-                                      '${widget.movieList[widget.index]['original_title']}',
-                                      widget.movieList[widget.index]['id'])));
-                        },
-                        child: const Text('Show cast')),
+                    Positioned(
+                      left: 20,
+                      bottom: 55,
+                        child:  CachedNetworkImage(
+                          width: 100,
+                              imageUrl:
+                                  'https://image.tmdb.org/t/p/w500/${widget.movieList[widget.index]['poster_path']}',
+                              placeholder: (context, url) => SizedBox(
+                                height: 150,
+                                child: spinkit,
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                            ),
+                        )
                   ],
                 ),
               ),

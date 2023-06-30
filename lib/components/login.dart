@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:movie_app/components/signup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// import '../api/get_api.dart';
 import 'home_page.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
@@ -18,8 +17,20 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     checkLogin();
+    print('>>>>>>>>>>>>>>>>>>>$user');
   }
+  
+  final auth = FirebaseAuth.instance;
+  final user = FirebaseAuth.instance.currentUser;
+  final formKey = GlobalKey<FormState>();
+  TextEditingController foremail = TextEditingController();
+  TextEditingController forPassword = TextEditingController();
+  bool con = false;
 
+  Widget spinkit = SpinKitThreeBounce(
+    color: Colors.white,
+    size: 20,
+  );
   //for check login or not!
   void checkLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -41,15 +52,12 @@ class _LoginPageState extends State<LoginPage> {
       try {
         await auth.signInWithEmailAndPassword(
             email: foremail.text, password: forPassword.text);
-        if (user != null) {
-          final uemail = user!.email;
           final uid = user!.uid;
           print('>>>>>>>>>>>>>>$user');
           print('>>>>>>>>>>>>>>>>>>>>>>>>$uid');
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString('id', uid);
-          await prefs.setString('email', uemail!);
-        }
+
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (context) => HomePage()));
       } on FirebaseAuthException catch (e) {
@@ -69,39 +77,13 @@ class _LoginPageState extends State<LoginPage> {
           });
           showSnackBar('Wrong password provided for that user!');
           print('Wrong password provided for that user.');
-        } else{
+        } else {
           setState(() {
-              con = false;
-              showSnackBar('Something Wrong!');
-            });
+            con = false;
+            showSnackBar('Something Wrong!');
+          });
         }
       }
-
-      // setState(() {
-      //   con = true;
-      // });
-      // Map getResult = await getLoginCode({
-      //   'userid': forId.text,
-      //   'password': forPassword.text,
-      // });
-      // if (getResult['returncode'] == '200') {
-      //   Navigator.pushReplacement(
-      //       context, MaterialPageRoute(builder: (context) => HomePage()));
-      // } else {
-      //   Future.delayed(Duration(milliseconds: 1500), () {
-      //     setState(() {
-      //       con = false;
-      //     });
-      //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      //       content: Text('Incorret userid or password!'),
-      //       action: SnackBarAction(
-      //         label: 'Undo',
-      //         onPressed: () {
-      //         },
-      //       ),
-      //     ));
-      //   });
-      // }
     }
   }
 
@@ -117,17 +99,6 @@ class _LoginPageState extends State<LoginPage> {
     ));
   }
 
-  final user = FirebaseAuth.instance.currentUser;
-  final auth = FirebaseAuth.instance;
-  final formKey = GlobalKey<FormState>();
-  TextEditingController foremail = TextEditingController();
-  TextEditingController forPassword = TextEditingController();
-  bool con = false;
-
-  Widget spinkit = SpinKitThreeBounce(
-    color: Colors.white,
-    size: 20,
-  );
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -202,13 +173,13 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(
                   width: MediaQuery.of(context).size.width * 0.8,
                   child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) => SignUp()));
-                      },
-                      label: Text('Signup with Gmail'),
-                      icon: Icon(Icons.email),
-                      ),
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => SignUp()));
+                    },
+                    label: Text('Signup with Gmail'),
+                    icon: Icon(Icons.email),
+                  ),
                 )
               ],
             ),
